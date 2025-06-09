@@ -27,8 +27,13 @@ export class PokemonService {
     }
   }
 
-  async findAll() {
-    return await this.pokemonModel.find();
+  async findAll(limit: number = 10, offset: number = 0) {
+    return await this.pokemonModel
+      .find()
+      .limit(limit)
+      .skip(offset)
+      .select('-__v')
+      .sort({ no: 1 });
   }
 
   async findOne(term: string) {
@@ -81,6 +86,27 @@ export class PokemonService {
       if (deletedCount === 0) {
         throw new NotFoundException(`Pokemon with id "${id}" not found`);
       }
+    } catch (error) {
+      this.handleExceptions(error);
+    }
+  }
+
+  async removeAll() {
+    try {
+      const { deletedCount } = await this.pokemonModel.deleteMany({});
+
+      if (deletedCount === 0) {
+        throw new NotFoundException(`Pokemon not found`);
+      }
+    } catch (error) {
+      this.handleExceptions(error);
+    }
+  }
+
+  async createAll(pokemons: CreatePokemonDto[]) {
+    try {
+      const created = await this.pokemonModel.create(pokemons);
+      return created;
     } catch (error) {
       this.handleExceptions(error);
     }
